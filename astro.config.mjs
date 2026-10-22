@@ -355,6 +355,14 @@ export default defineConfig({
 		server: {
 			watch: {
 				ignored: ["**/package/**", "**/Firefly-docs/**"],
+				// Windows 下 chokidar 的 fs.watch 偶发把目录误判为已删除，产生批量
+				// unlink 事件：dev server 会因此重启，内容集合缓存也会写入不完整，
+				// 导致 getEntry() 找不到条目。轮询读取更稳定，可用
+				// ASTRO_WATCH_POLLING=0 关闭。
+				usePolling:
+					process.env.ASTRO_WATCH_POLLING !== "0" &&
+					process.platform === "win32",
+				interval: 300,
 			},
 		},
 		resolve: {
